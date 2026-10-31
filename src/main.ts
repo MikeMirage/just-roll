@@ -1,9 +1,11 @@
 import './style.css';
+import './mobile-controls.css';
 import { RaceSimulation, STEP, type Input } from './game/simulation';
-import { Track, SURFACES, clamp } from './game/track';
+import { Track, SURFACES, clamp, dot } from './game/track';
 import { CIRCUITS } from './game/circuits';
 import { RaceAudio } from './game/audio';
 import { GameScene } from './render/scene';
+import { TouchSteering, type TouchMode } from './game/touch-steering';
 
 const icon = (name: string) => {
   const paths: Record<string, string> = {
@@ -54,21 +56,28 @@ app.innerHTML = `
     <div class="race-position"><span class="micro-label">POSICIÓN</span><div><strong id="position">21</strong><span id="rank-total">/ 40</span></div><span class="position-change" id="position-hint">BUSCA TU TRAZADA</span></div>
     <div class="race-timing"><div><span class="micro-label" id="lap-label">TRAMO</span><strong><span id="lap">01</span><small id="lap-total"> / 11</small></strong><span id="gate-status" class="gate-status">CONTROL PENDIENTE</span></div><div><span class="micro-label">TIEMPO</span><strong id="time">00:00.00</strong><span id="penalty-time" class="gate-status"></span></div></div>
     <div class="leaderboard"><div class="leaderboard-heading">EN PISTA <span id="survivors">40</span></div><ol id="standings"></ol></div>
-    <div class="speedometer"><div class="surface-indicator"><i></i><span id="surface">CARBONO</span></div><div class="speed-number"><strong id="speed">000</strong><span>KM/H</span></div><div class="speed-bars" aria-hidden="true">${'<i></i>'.repeat(22)}</div><span id="boost-status" class="speed-caption">AVANCE AUTOMÁTICO</span></div>
+    <div class="drive-dock"><div class="speedometer"><div class="surface-indicator"><i></i><span id="surface">CARBONO</span></div><div class="speed-number"><strong id="speed">000</strong><span>KM/H</span></div><div class="speed-bars" aria-hidden="true">${'<i></i>'.repeat(22)}</div><span id="boost-status" class="speed-caption">AVANCE AUTOMÁTICO</span></div>
+    <button id="touch-mode-toggle" class="touch-mode-toggle" aria-label="Cambiar control táctil a slide"><span id="touch-mode-name">DIGITAL</span><small>CAMBIAR MODO ⇄</small></button>
+    <button id="turbo" class="turbo-button" aria-label="Activar turbo, una carga por carrera">${icon('bolt')}<span><strong>TURBO</strong><small id="turbo-label">ESPACIO · 1 CARGA</small></span><span class="turbo-count">01</span></button>
+    </div>
     <div class="minimap" id="race-map" aria-label="Mapa del circuito"></div>
     <div class="music-nowplaying" id="now-playing">♫ ORIGINAL SIGNAL <span>ACID / ELECTRO</span></div>
-    <button id="turbo" class="turbo-button" aria-label="Activar turbo, una carga por carrera">${icon('bolt')}<span><strong>TURBO</strong><small id="turbo-label">ESPACIO · 1 CARGA</small></span><span class="turbo-count">01</span></button>
+    <div class="mobile-track-status"><span id="mobile-section"></span><span id="mobile-controls"></span></div>
     <div id="recovery" class="recovery hidden" role="status"><span>REAPARICIÓN · PENALIZACIÓN</span><strong id="recovery-count">3</strong><small>Volverás al último punto seguro · el cronómetro sigue</small></div><div class="race-progress"><div id="progress-fill"></div></div>
   </section>
   <div id="countdown" class="countdown hidden" aria-live="assertive"><span>PREPÁRATE</span><strong>3</strong></div>
   <div id="toast" class="toast" role="status"></div>
-  <div id="touch-controls" class="touch-controls hidden"><button id="left" aria-label="Girar a la izquierda">❮</button><button id="right" aria-label="Girar a la derecha">❯</button></div>
+  <div id="touch-controls" class="touch-controls hidden" data-control="digital" role="group" aria-label="Control táctil de dirección">
+    <button id="left" class="touch-half" aria-label="Girar a la izquierda, mitad izquierda"><span>←</span><small>IZQUIERDA</small></button>
+    <button id="right" class="touch-half" aria-label="Girar a la derecha, mitad derecha"><span>→</span><small>DERECHA</small></button>
+    <div class="touch-slide" aria-hidden="true"><span class="touch-slide-title">DESLIZA PARA ELEGIR TU TRAZADA</span><div id="touch-rail" class="touch-rail"><i class="touch-midpoint"></i><i id="touch-current"></i><i id="touch-target"></i></div><small id="touch-slide-hint">TOCA Y DESLIZA</small></div>
+  </div>
 
   <section id="pause-panel" class="modal-overlay hidden" aria-label="Carrera pausada"><div class="dialog pause-dialog"><span class="eyebrow">TÓMATE UN RESPIRO</span><h2>EN PAUSA<span>.</span></h2><p>La pista estará aquí cuando vuelvas.</p><button id="resume" class="primary-button">SEGUIR RODANDO ${icon('arrow')}</button><button id="restart-paused" class="text-button">REINICIAR CARRERA</button><button id="exit" class="text-button muted">VOLVER AL INICIO</button></div></section>
 
   <section id="results" class="modal-overlay hidden" aria-label="Resultados de carrera"><div class="dialog results-dialog"><span class="eyebrow" id="result-circuit">NEON CIRCUIT · CARRERA COMPLETADA</span><h2 id="result-title">BIEN RODADO<span>.</span></h2><div class="result-summary"><div><span class="micro-label">TU POSICIÓN</span><strong id="result-position">—</strong></div><div><span class="micro-label">TU TIEMPO</span><strong id="result-time">—</strong></div><div><span class="micro-label">MEJOR MARCA LOCAL</span><strong id="best-time">—</strong></div></div><p id="result-detail" class="result-detail"></p><ol id="result-list"></ol><button id="again" class="primary-button">OTRA CARRERA ${icon('arrow')}</button><button id="result-exit" class="text-button">VOLVER AL INICIO</button></div></section>
 
-  <section id="settings-panel" class="modal-overlay hidden" aria-label="Ajustes"><div class="dialog settings-dialog"><button id="close-settings" class="icon-button close-dialog" aria-label="Cerrar ajustes">${icon('close')}</button><span class="eyebrow">A TU MANERA</span><h2>AJUSTES<span>.</span></h2><label class="setting-row" for="quality"><span>Calidad visual<small>Menos efectos para más fluidez.</small></span><select id="quality"><option value="high">Alta</option><option value="low">Rendimiento</option></select></label><label class="setting-row" for="motion"><span>Reducir movimiento<small>Suaviza el turbo y elimina las sacudidas.</small></span><input type="checkbox" id="motion"></label><div class="controls-guide"><strong>CÓMO SE JUEGA</strong><p><kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd> para dirigir.<br><kbd>ESPACIO</kbd> para usar tu único turbo.<br><kbd>ESC</kbd> para pausar. Mando: stick + A.</p><p class="touch-guide">En móvil, mantén las flechas para girar y toca el botón de turbo. Puedes pulsarlos a la vez.</p><p>Las flechas verdes del suelo te aceleran sin gastar tu turbo. El hielo desliza, la goma frena y el titanio conserva la velocidad.</p></div></div></section>
+  <section id="settings-panel" class="modal-overlay hidden" aria-label="Ajustes"><div class="dialog settings-dialog"><button id="close-settings" class="icon-button close-dialog" aria-label="Cerrar ajustes">${icon('close')}</button><span class="eyebrow">A TU MANERA</span><h2>AJUSTES<span>.</span></h2><label class="setting-row" for="quality"><span>Calidad visual<small>Menos efectos para más fluidez.</small></span><select id="quality"><option value="high">Alta</option><option value="low">Rendimiento</option></select></label><label class="setting-row" for="touch-mode"><span>Control táctil<small>Digital por mitades o trazada mediante slide.</small></span><select id="touch-mode"><option value="digital">Digital · mitades</option><option value="analog">Slide · analógico</option></select></label><label class="setting-row" for="motion"><span>Reducir movimiento<small>Suaviza el turbo y elimina las sacudidas.</small></span><input type="checkbox" id="motion"></label><div class="controls-guide"><strong>CÓMO SE JUEGA</strong><p><kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd> para dirigir.<br><kbd>ESPACIO</kbd> para usar tu único turbo.<br><kbd>ESC</kbd> para pausar. Mando: stick + A.</p><p class="touch-guide">Toda la zona inferior sirve para dirigir. DIGITAL: mantén la mitad izquierda o derecha. SLIDE: toca y desliza para elegir tu posición en la pista; al soltar se conserva la trazada. Cambia de modo con el selector junto al turbo. Puedes dirigir y usar turbo con dos dedos.</p><p>Las flechas verdes del suelo te aceleran sin gastar tu turbo. El hielo desliza, la goma frena y el titanio conserva la velocidad.</p></div></div></section>
 `;
 
 document.querySelector('.controls-guide')!.insertAdjacentHTML('beforebegin',`<div class="audio-settings"><label for="music-volume">Música <output id="music-level">55%</output></label><input id="music-volume" type="range" min="0" max="100" value="55"><label for="effects-volume">Efectos y salida <output id="effects-level">70%</output></label><input id="effects-volume" type="range" min="0" max="100" value="70"><div class="audio-preview"><button id="preview-music" class="text-button">ESCUCHAR MÚSICA</button><button id="preview-horn" class="text-button">PROBAR BOCINA</button></div></div>`);
@@ -100,7 +109,11 @@ let performanceTime = 0;
 let performanceFrames = 0;
 let autoQuality = true;
 const keys = new Set<string>();
-const pointers = { left: new Set<number>(), right: new Set<number>() };
+const touch = new TouchSteering();
+try{const saved=localStorage.getItem('justroll:touch-mode');if(saved==='analog'||saved==='digital')touch.setMode(saved);}catch{}
+const touchLayout=matchMedia('(pointer: coarse), (max-width: 760px)');
+let touchViewportWidth=innerWidth;
+
 let boostRequested = false;
 let padBoostHeld = false;
 let countdownStarted = false;
@@ -147,7 +160,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-circuit]').forEach(button=>b
 function toast(text: string, type = '') {
   $('toast').textContent = text; $('toast').className = `toast visible ${type}`; toastUntil = performance.now() + 1800;
 }
-function clearInput() { keys.clear(); pointers.left.clear(); pointers.right.clear(); boostRequested = false; $('left').classList.remove('pressed'); $('right').classList.remove('pressed'); }
+function clearInput() { keys.clear(); resetTouch(); boostRequested = false; }
 function setMode(next: Mode) {
   musicPreview=false;
   $('preview-music').textContent='ESCUCHAR MÚSICA';
@@ -238,6 +251,9 @@ function updateHud() {
   $('speed').textContent = String(Math.round(player.speed * 3.6)).padStart(3, '0');
   const surface = SURFACES[player.surface]; $('surface').textContent = surface.name;
   document.documentElement.style.setProperty('--surface-color', surface.accent);
+  $('mobile-section').textContent=track.modular?track.modules[section]?.name??'META':track.definition.name;
+  $('mobile-controls').textContent=track.modular?`${player.nextGate}/${track.gates.length} CONTROLES`:`VUELTA ${player.lap}/${track.laps}`;
+  updateTouchFeedback();
   const boosted = player.boostUntil > simulation.time || player.padUntil > simulation.time;
   const spent = !player.boostAvailable;
   document.body.classList.toggle('boosting', boosted && mode === 'racing' && !reducedMotion);
@@ -264,14 +280,53 @@ function updateSoundButton() {
   $('sound').setAttribute('aria-label', audio.enabled ? 'Silenciar sonido' : 'Activar sonido');
   $('sound').title = audio.enabled ? 'Silenciar sonido' : 'Activar sonido';
 }
+function resetTouch(){
+  const ids=[...touch.pointers.keys()],pad=$('touch-controls');
+  touch.clear();
+  for(const id of ids)if(id>=0&&pad.hasPointerCapture(id))pad.releasePointerCapture(id);
+  updateTouchFeedback();
+}
+function updateTouchFeedback(){
+  const pad=$('touch-controls'),analog=touch.mode==='analog';
+  pad.dataset.control=touch.mode;
+  pad.setAttribute('aria-label',analog?'Control analógico: desliza para elegir trazada; al soltar se mantiene':'Control digital: mitad izquierda para girar a la izquierda y mitad derecha para girar a la derecha');
+  pad.classList.toggle('touching',touch.pointers.size>0);
+  pad.classList.toggle('has-target',analog&&touch.target!==null);
+  $('left').classList.toggle('pressed',!analog&&touch.left);
+  $('right').classList.toggle('pressed',!analog&&touch.right);
+  $('touch-target').style.left=`${((touch.target??0)+1)*50}%`;
+  const player=simulation?.racers[0];
+  const half=player?Math.max(.1,simulation.track.widthAt(player.s,player.route)/2-1.3):1;
+  $('touch-current').style.left=`${clamp(player?(1-player.side/half)/2:.5,0,1)*100}%`;
+  $('touch-slide-hint').textContent=touch.pointers.size?'ELIGE TU TRAZADA':touch.target===null?'TOCA Y DESLIZA':'TRAZADA FIJADA';
+  $('touch-mode-name').textContent=analog?'SLIDE':'DIGITAL';
+  $('touch-mode-toggle').setAttribute('aria-label',`Control ${analog?'slide analógico':'digital'}. Cambiar a ${analog?'digital por mitades':'slide analógico'}`);
+  $<HTMLSelectElement>('touch-mode').value=touch.mode;
+}
+function changeTouchMode(mode:TouchMode){
+  resetTouch();touch.setMode(mode);updateTouchFeedback();
+  try{localStorage.setItem('justroll:touch-mode',mode);}catch{}
+}
+function applyTouchLayout(){
+  document.body.classList.toggle('touch-layout',touchLayout.matches);resetTouch();
+}
+touchLayout.addEventListener('change',applyTouchLayout);
+window.addEventListener('resize',()=>{if(innerWidth!==touchViewportWidth){touchViewportWidth=innerWidth;resetTouch();}});
+applyTouchLayout();
+$('touch-mode-toggle').addEventListener('click',()=>changeTouchMode(touch.mode==='digital'?'analog':'digital'));
+$<HTMLSelectElement>('touch-mode').addEventListener('change',e=>changeTouchMode((e.target as HTMLSelectElement).value==='analog'?'analog':'digital'));
+
 function input(): Input {
-  let steer = (keys.has('arrowright') || keys.has('d') || pointers.right.size ? 1 : 0) - (keys.has('arrowleft') || keys.has('a') || pointers.left.size ? 1 : 0);
+  const left=keys.has('arrowleft')||keys.has('a'),right=keys.has('arrowright')||keys.has('d');
+  const player=simulation.racers[0],frame=simulation.track.at(player.s,player.route);
+  let steer=touchLayout.matches?touch.sample(player.side,dot(player.body.linvel(),frame.right),simulation.track.widthAt(player.s,player.route)):0;
+  if(left||right){touch.clear();steer=Number(right)-Number(left);}
   const gamepad = navigator.getGamepads?.().find(p => p?.connected);
   if (gamepad) {
     const axis = gamepad.axes[0] ?? 0;
-    if (Math.abs(axis) > 0.12) steer = axis;
-    if (gamepad.buttons[14]?.pressed) steer = -1;
-    if (gamepad.buttons[15]?.pressed) steer = 1;
+    if (Math.abs(axis) > 0.12){touch.clear();steer = axis;}
+    if (gamepad.buttons[14]?.pressed){touch.clear();steer = -1;}
+    if (gamepad.buttons[15]?.pressed){touch.clear();steer = 1;}
     const held = !!gamepad.buttons[0]?.pressed;
     if (held && !padBoostHeld) boostRequested = true;
     padBoostHeld = held;
@@ -282,6 +337,7 @@ function input(): Input {
 window.addEventListener('keydown', e => {
   const key = e.key.toLowerCase();
   if (e.target instanceof HTMLSelectElement || e.target instanceof HTMLInputElement) return;
+  if(key===' '&&e.target instanceof Element&&e.target.closest('button,a'))return;
   if (['arrowleft', 'arrowright', ' ', 'arrowup', 'arrowdown'].includes(key)) e.preventDefault();
   if (key === 'escape' && !e.repeat) {
     if (settingsOpen) closeSettings(); else pauseRace();
@@ -292,11 +348,24 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur', () => { clearInput(); if (mode === 'racing' || mode === 'countdown') pauseRace(); });
 document.addEventListener('visibilitychange', () => { if(document.hidden){audio.music(false);musicPreview=false;if(mode==='racing'||mode==='countdown')pauseRace();} });
-for (const direction of ['left', 'right'] as const) {
-  const button = $(direction);
-  button.addEventListener('pointerdown', e => { e.preventDefault(); pointers[direction].add(e.pointerId); button.setPointerCapture(e.pointerId); button.classList.add('pressed'); });
-  const release = (e: PointerEvent) => { pointers[direction].delete(e.pointerId); if (!pointers[direction].size) button.classList.remove('pressed'); };
-  button.addEventListener('pointerup', release); button.addEventListener('pointercancel', release); button.addEventListener('lostpointercapture', release);
+const touchPad=$('touch-controls');
+const pointerX=(e:PointerEvent)=>{const rect=(touch.mode==='analog'?$('touch-rail'):touchPad).getBoundingClientRect();return(e.clientX-rect.left)/Math.max(1,rect.width);};
+touchPad.addEventListener('pointerdown',e=>{
+  if(mode!=='racing'||!touchLayout.matches||simulation.racers[0].respawnUntil>simulation.time||(e.pointerType==='mouse'&&e.button!==0))return;
+  e.preventDefault();touch.press(e.pointerId,pointerX(e));touchPad.setPointerCapture(e.pointerId);updateTouchFeedback();
+});
+touchPad.addEventListener('pointermove',e=>{
+  if(!touch.pointers.has(e.pointerId))return;
+  e.preventDefault();touch.move(e.pointerId,pointerX(e));updateTouchFeedback();
+});
+for(const event of ['pointerup','pointercancel','lostpointercapture'] as const)touchPad.addEventListener(event,e=>{
+  touch.release(e.pointerId,event!=='pointerup');updateTouchFeedback();
+});
+touchPad.addEventListener('contextmenu',e=>e.preventDefault());
+for(const [id,x,pointer] of [['left',.25,-100],['right',.75,-101]] as const){
+  $(id).addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&mode==='racing'){e.preventDefault();e.stopPropagation();touch.press(pointer,x);updateTouchFeedback();}});
+  $(id).addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();e.stopPropagation();touch.release(pointer);updateTouchFeedback();}});
+  $(id).addEventListener('blur',()=>{touch.release(pointer,true);updateTouchFeedback();});
 }
 $('turbo').addEventListener('pointerdown', e => { e.preventDefault(); if (mode === 'racing') boostRequested = true; });
 $('turbo').addEventListener('click', e => { if (e.detail === 0 && mode === 'racing') boostRequested = true; });
@@ -357,9 +426,9 @@ function animate(now: number) {
   }
   if ((mode === 'menu' && !settingsOpen) || mode === 'racing' || mode === 'results') {
     accumulator += dt;
-    const command = input();
     let steps = 0;
     while (accumulator >= STEP && steps++ < 6) {
+      const command = input();
       simulation.tick(command, mode === 'menu' || mode === 'results');
       command.boost = false; boostRequested = false; accumulator -= STEP;
       for (const event of simulation.events) {
@@ -371,7 +440,7 @@ function animate(now: number) {
         if(event.type==='clash'){audio.hit();scene.impact(.35);}
         if(event.type==='land'&&(event.strength??0)>.35){audio.hit();scene.impact((event.strength??.5)*.5);}
         if(event.type==='shortcut')toast(`ATAJO +${Math.round(event.strength??0)} M`,'green');
-        if (event.type === 'respawn') { toast(simulation.track.modular?'REAPARICIÓN · 3 S DE PENALIZACIÓN':'DE VUELTA EN PISTA'); scene.resetCamera(simulation); }
+        if (event.type === 'respawn') { resetTouch(); toast(simulation.track.modular?'REAPARICIÓN · 3 S DE PENALIZACIÓN':'DE VUELTA EN PISTA'); scene.resetCamera(simulation); }
         if (event.type === 'lap') { toast('ÚLTIMA VUELTA', 'green'); audio.tone(880, 0.25); }
         if (event.type === 'finish'||event.type==='eliminated') finishRace();
       }

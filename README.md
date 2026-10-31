@@ -31,11 +31,20 @@ La rama `main` se publica mediante `.github/workflows/pages.yml`: instala con `n
 
 | Acción | PC | Móvil | Mando |
 | --- | --- | --- | --- |
-| Dirigir | Flechas izquierda/derecha o A/D | Mantener las flechas en pantalla | Stick izquierdo o cruceta |
+| Dirigir | Flechas izquierda/derecha o A/D | Mitad izquierda/derecha o slide analógico | Stick izquierdo o cruceta |
 | Turbo | Espacio o botón en pantalla | Botón TURBO | Botón A / botón principal |
 | Pausar | Esc o botón de pausa | Botón de pausa | Start |
 
-La canica avanza automáticamente. El turbo personal dura 2,6 segundos y tiene una sola carga por carrera. Los aceleradores verdes del suelo conceden impulso durante 1,5 segundos sin gastar esa carga. Admite mantener dirección y activar turbo a la vez mediante multitáctil. El navegador necesita una interacción para habilitar el audio.
+La canica avanza automáticamente. El turbo personal dura 2,6 segundos y tiene una sola carga por carrera. Los aceleradores verdes del suelo conceden impulso durante 1,5 segundos sin gastar esa carga. Admite mantener dirección y activar turbo a la vez mediante multitáctil en ambos modos. El navegador necesita una interacción para habilitar el audio.
+
+## HUD y control móvil
+
+La parte superior agrupa posición, tramo, tiempo y controles de paso. En móvil se ocultan la lista de rivales, el minimapa y la información musical para dejar libre la carretera. Velocidad, superficie, selector de dirección y turbo forman una fila compacta sobre la superficie táctil. La zona inferior ocupa todo el ancho y respeta las áreas seguras del teléfono, en vertical y horizontal.
+
+- **Digital** (predeterminado): mantener cualquier punto de la mitad izquierda dirige a la izquierda, y cualquier punto de la mitad derecha dirige a la derecha. Arrastrar entre mitades cambia la dirección; al soltar se libera. Dos dedos en mitades opuestas se neutralizan.
+- **Slide**: tocar y deslizar horizontalmente establece una posición objetivo en el ancho útil de la pista. El aro indica el objetivo y el punto blanco la posición actual. Al soltar se mantiene la trazada elegida. El control aplica dirección y freno lateral mediante las fuerzas existentes, sin mover ni teletransportar el cuerpo; conserva inercias, hielo, saltos y choques. El ancho se adapta a las ramas, el embudo y el looping.
+
+El botón **DIGITAL / SLIDE**, junto al turbo, permite alternar durante la carrera. También hay un selector en Ajustes. La elección queda guardada localmente. Pausar, reiniciar, cambiar de modo, cancelar el gesto o reaparecer libera el control; teclado y mando pueden tomar prioridad. El turbo queda fuera de la zona de dirección para poder accionarlo con otro dedo.
 
 ## Circuitos y reglas
 
@@ -104,6 +113,8 @@ El **looping** tiene suelo y barreras con orientación completa en 3D. Una compr
 - `src/game/circuits.ts`: seis trazados, ambientes, música y secciones de barrera abierta.
 - `src/game/modular.ts`: definición de los once módulos, cintas alternativas, rampas, huecos, embudo de anchura variable y bases 3D del looping de Nexus Run.
 - `src/render/modular-course.ts`: geometría y señalización de ramas, túneles, rampas, embudo, estructura orbital, controles, postes y marcadores mediante instancias.
+- `src/game/touch-steering.ts`: estado de dedos, control por mitades y conversión de objetivo de trazada en dirección analógica.
+- `src/mobile-controls.css`: HUD compacto y superficie táctil completa para móvil.
 - `src/game/tuning.ts`: velocidad, aceleración, gravedad, asistencia en curvas y respuesta lateral compartidas por la simulación.
 - `src/game/track.ts`: recorrido, bases locales, superficies, aceleradores, obstáculos y localización de aterrizajes. No depende de Three.js.
 - `src/game/simulation.ts`: física a 60 Hz, conducción asistida, bots, turbo, eventos y reglas. No depende del DOM ni de Three.js.
@@ -117,6 +128,8 @@ El **looping** tiene suelo y barreras con orientación completa en 3D. Una compr
 - `tests/simulation.test.ts`: controles según cámara, turbo y ganancia de velocidad física, pausa/reinicio, aceleradores, suavidad del peralte, carreras completas en los cinco circuitos, cruces a dos alturas, caída balística real, validación de puertas/meta y expulsión física de un oponente.
 
 `tests/spectacle.test.ts` comprueba la continuidad de las bases en vertical y boca abajo, el pelotón compacto de 40 canicas en embudo y looping a dos velocidades, ausencia de colas prolongadas, control invertido obligatorio, caída sin adhesión fuera de pista, cámara y dirección relativas a la pantalla al conducir boca abajo.
+
+`tests/touch.test.ts` comprueba cruce de mitades, varios dedos, cancelación, persistencia del objetivo al soltar y seguimiento físico de una trazada, también boca abajo.
 
 `tests/modular.test.ts` comprueba la carrera completa de 40 pilotos, todas las ramas, vuelo y aterrizaje de los 40, elección manual de ruta, puertas obligatorias y recuperación/cámara con penalización.
 

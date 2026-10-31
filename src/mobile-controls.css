@@ -1,0 +1,104 @@
+/* Touch layout: race information above the road, a full-width input surface below. */
+.drive-dock{display:contents}
+.touch-mode-toggle,.mobile-track-status{display:none}
+.touch-controls .touch-slide{display:none}
+
+.touch-layout{
+  --touch-zone-height:clamp(145px,28dvh,240px);
+  --touch-bottom:env(safe-area-inset-bottom,0px);
+  --touch-left:max(16px,env(safe-area-inset-left,0px));
+  --touch-right:max(16px,env(safe-area-inset-right,0px));
+}
+.touch-layout .topbar{height:calc(54px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) var(--touch-right) 0 var(--touch-left)}
+.touch-layout .brand{font-size:22px}
+.touch-layout .brand-mark{margin-right:8px}
+.touch-layout .brand-mark i{height:20px;width:4px}
+.touch-layout .alpha-tag,.touch-layout .top-center{display:none}
+.touch-layout .top-actions{gap:7px}
+.touch-layout .icon-button{width:34px;height:34px}
+.touch-layout .hud{inset:calc(54px + env(safe-area-inset-top,0px)) 0 0}
+.touch-layout .race-position{left:var(--touch-left);top:14px}
+.touch-layout .race-position .micro-label,.touch-layout .race-timing .micro-label{font-size:7px;letter-spacing:1.3px}
+.touch-layout .race-position>div{gap:5px;margin-top:3px}
+.touch-layout .race-position strong{font-size:48px;letter-spacing:-1.5px;line-height:1}
+.touch-layout .race-position>div>span{font-size:16px}
+.touch-layout .position-change{display:none}
+.touch-layout .race-timing{left:auto;right:var(--touch-right);top:14px;transform:none;gap:18px}
+.touch-layout .race-timing>div{gap:7px}
+.touch-layout .race-timing>div:first-child{max-width:none}
+.touch-layout .race-timing strong{font-size:26px;letter-spacing:.6px}
+.touch-layout .race-timing strong small{font-size:15px}
+.touch-layout #gate-status{display:none}
+.touch-layout #penalty-time{font-size:6px;letter-spacing:.2px;max-width:120px}
+.touch-layout .leaderboard,.touch-layout .minimap,.touch-layout .music-nowplaying{display:none}
+.touch-layout .mobile-track-status{display:flex;justify-content:space-between;gap:12px;position:absolute;left:var(--touch-left);right:var(--touch-right);top:80px;padding-top:8px;border-top:1px solid #9cbac02e;font-size:7px;letter-spacing:.7px;color:#b3c8d1}
+.touch-layout #mobile-section{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.touch-layout #mobile-controls{white-space:nowrap;color:var(--lime)}
+.touch-layout .race-progress{left:var(--touch-left);right:var(--touch-right);bottom:calc(var(--touch-zone-height) + var(--touch-bottom) + 72px);height:2px}
+
+.touch-layout .drive-dock{display:grid;grid-template-columns:96px minmax(0,1fr) minmax(0,1fr);align-items:end;gap:8px;position:absolute;left:var(--touch-left);right:var(--touch-right);bottom:calc(var(--touch-zone-height) + var(--touch-bottom) + 12px);z-index:7}
+.touch-layout .drive-dock .speedometer{position:static;inset:auto!important;min-width:0}
+.touch-layout .drive-dock .speed-number{gap:5px;margin:3px 0 0}
+.touch-layout .drive-dock .speed-number strong{font-size:32px;letter-spacing:-.3px;line-height:1}
+.touch-layout .drive-dock .speed-number>span{font-size:6px;letter-spacing:.7px}
+.touch-layout .drive-dock .surface-indicator{font-size:6px;letter-spacing:.8px;gap:5px;white-space:nowrap}
+.touch-layout .drive-dock .surface-indicator i{width:4px;height:4px}
+.touch-layout .drive-dock .speed-bars,.touch-layout .drive-dock .speed-caption{display:none}
+.touch-layout .touch-mode-toggle{display:flex;order:-1;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:48px;min-width:0;padding:7px 4px;background:#0c202cdd;border:1px solid #8ab4c454;pointer-events:auto;touch-action:manipulation}
+.touch-layout .touch-mode-toggle>span{font-size:10px;letter-spacing:1.4px;color:#d6e8ed;font-weight:700}
+.touch-layout .touch-mode-toggle>small{font-size:5px;letter-spacing:.6px;color:#8daebd}
+.touch-layout .drive-dock .turbo-button{position:static;inset:auto!important;justify-self:end;width:min(112px,100%);min-width:0;min-height:48px;height:48px;padding:7px 8px;gap:6px;backdrop-filter:none}
+.touch-layout .drive-dock .turbo-button>svg{width:15px;height:22px}
+.touch-layout .drive-dock .turbo-button>span:nth-child(2){gap:4px}
+.touch-layout .drive-dock .turbo-button strong{font-size:19px;letter-spacing:.5px}
+.touch-layout .drive-dock .turbo-button small{display:none}
+.touch-layout .drive-dock .turbo-count{font-size:15px;padding-left:6px}
+
+.touch-layout .touch-controls:not(.hidden){display:block;position:absolute;left:0;right:0;bottom:0;gap:0;width:100%;height:calc(var(--touch-zone-height) + var(--touch-bottom));z-index:6;border-top:1px solid #9bbfc43a;background:linear-gradient(180deg,#0b202a22,#07172094);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
+.touch-layout .touch-controls .touch-half{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:9px;width:50%;height:100%;padding:0 12px var(--touch-bottom);background:transparent;border:0;border-radius:0;backdrop-filter:none;font-size:24px;color:#a9c5cf;touch-action:none}
+.touch-layout .touch-controls #left{left:0;border-right:1px solid #93b8c22e}
+.touch-layout .touch-controls #right{right:0}
+.touch-layout .touch-half>small{font-size:7px;letter-spacing:2px}
+.touch-layout .touch-controls .touch-half.pressed{color:var(--lime);background:#b7ff5717}
+.touch-layout .touch-controls .touch-half:focus-visible{outline:2px solid var(--lime);outline-offset:-5px}
+.touch-layout .touch-controls[data-control=analog] .touch-half{display:none}
+.touch-layout .touch-controls[data-control=analog] .touch-slide{display:flex;position:absolute;inset:0 24px var(--touch-bottom);flex-direction:column;align-items:center;justify-content:center;gap:28px;pointer-events:none}
+.touch-slide-title{font-size:7px;letter-spacing:1.6px;color:#a3c1cc;text-align:center}
+.touch-rail{position:relative;flex:none;width:100%;height:2px;background:linear-gradient(90deg,#6c99ac50,#b9d7df7d,#6c99ac50)}
+.touch-rail:before,.touch-rail:after{content:'';position:absolute;top:-4px;height:10px;width:1px;background:#96b6c4}
+.touch-rail:before{left:0}.touch-rail:after{right:0}
+.touch-midpoint{position:absolute;top:-3px;left:50%;height:8px;width:1px;background:#96b6c475}
+#touch-target{position:absolute;top:50%;left:50%;height:22px;width:22px;border:2px solid var(--lime);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 18px #b7ff5730;opacity:.2}
+.has-target #touch-target{opacity:.75;background:#b7ff571c}
+.touching #touch-target{opacity:1;box-shadow:0 0 22px #b7ff5750}
+#touch-current{position:absolute;top:50%;left:50%;height:6px;width:6px;border-radius:50%;background:#e7f7fb;transform:translate(-50%,-50%);opacity:.8}
+#touch-slide-hint{font-size:6px;letter-spacing:1.6px;color:#7da1b3}
+.touch-layout .footer-controls:after{content:'DIGITAL O SLIDE · ZONA INFERIOR';font-size:6px}
+.touch-layout .touch-guide{display:block}
+.touch-layout .toast{top:calc(168px + env(safe-area-inset-top,0px));max-width:calc(100% - 32px);font-size:8px;letter-spacing:1px;white-space:normal;text-align:center}
+.touch-layout .recovery{top:38%;width:calc(100% - 32px);max-width:420px}
+.touch-layout .countdown{top:38%}
+.touch-layout .countdown>strong{font-size:100px}
+
+@media(max-width:360px){
+  .touch-layout .drive-dock .turbo-button{padding:7px 6px;gap:5px}
+  .touch-layout .drive-dock .turbo-button>svg{display:none}
+  .touch-layout .drive-dock .turbo-button strong{font-size:18px}
+  .touch-layout .drive-dock .turbo-count{font-size:14px;padding-left:5px}
+}
+
+@media(orientation:landscape){
+  .touch-layout{--touch-zone-height:clamp(90px,28dvh,150px)}
+  .touch-layout .topbar{height:calc(44px + env(safe-area-inset-top,0px))}
+  .touch-layout .hud{top:calc(44px + env(safe-area-inset-top,0px))}
+  .touch-layout .race-position,.touch-layout .race-timing{top:9px}
+  .touch-layout .race-position strong{font-size:36px}
+  .touch-layout .race-position .micro-label,.touch-layout .race-timing .micro-label{font-size:6px}
+  .touch-layout .race-timing strong{font-size:22px}
+  .touch-layout .mobile-track-status{top:59px;padding-top:5px;font-size:6px}
+  .touch-layout .drive-dock{bottom:calc(var(--touch-zone-height) + var(--touch-bottom) + 8px)}
+  .touch-layout .race-progress{bottom:calc(var(--touch-zone-height) + var(--touch-bottom) + 63px)}
+  .touch-layout .touch-controls[data-control=analog] .touch-slide{gap:18px}
+  .touch-layout .toast{top:110px;font-size:7px;padding:7px 12px}
+  .touch-layout .recovery{top:40%;padding:12px}
+}
