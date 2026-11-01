@@ -15,3 +15,6 @@
 
 .ic-mobile .ic-stats,.ic-mobile .ic-bottom{left:max(20px,env(safe-area-inset-left));right:max(20px,env(safe-area-inset-right))}
 @media(orientation:landscape) and (max-height:520px){.ic-mobile .ic-stats,.ic-mobile .ic-bottom{left:max(23px,env(safe-area-inset-left));right:max(23px,env(safe-area-inset-right))}}
+/* Keep action buttons inside the touch surface, below the playable view. */
+.ic-mobile .ic-bottom{bottom:calc(clamp(110px,20dvh,200px) + env(safe-area-inset-bottom) - 64px);z-index:2}.ic-mobile .ic-action{min-height:56px}.ic-mobile .ic-touch{justify-content:flex-end}.ic-mobile .ic-touch-rail{margin:14px 0}.ic-mobile .ic-touch>span{display:none}
+@media(orientation:landscape) and (max-height:520px){.ic-mobile .ic-bottom{bottom:calc(12px + env(safe-area-inset-bottom))}.ic-mobile .ic-action{min-height:50px}.ic-mobile .ic-touch>span{display:none}.ic-mobile .ic-touch-rail{position:absolute;top:4px;left:max(26px,env(safe-area-inset-left));right:max(26px,env(safe-area-inset-right));width:auto;margin:0}.ic-mobile .ic-touch>small{position:absolute;bottom:12px}}
