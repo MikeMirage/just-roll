@@ -2,6 +2,8 @@
 
 **[Jugar en el navegador](https://mikemirage.github.io/just-roll/)** · [Repositorio](https://github.com/MikeMirage/just-roll)
 
+**Nuevo modo independiente: [INFERNO BOWLING — El Umbral](https://mikemirage.github.io/just-roll/?mode=inferno)**. Runner de acción para una persona: bola de bolera, dirección analógica directa, saltos, golpe en caída, raíles, looping y combate contra Minos. Las carreras siguen disponibles desde la portada.
+
 Prototipo de carreras arcade de canicas en Three.js y TypeScript, con físicas Rapier. El nivel principal, **Nexus Run**, enfrenta a una persona y 39 bots en un recorrido modular de salida a meta. Incluye bifurcaciones, splitter, saltos, túneles turbo, un embudo de tres salidas, un looping magnético de 80 metros de altura y reaparición con penalización. Se conservan cinco circuitos clásicos de ocho canicas y dos vueltas. La carrera se ejecuta localmente en el navegador.
 
 ## Ejecutar
@@ -20,6 +22,33 @@ npm run build   # TypeScript y compilación de producción
 npm run preview # Servir la compilación
 npm test        # Pruebas de simulación sin navegador
 ```
+
+## Inferno Bowling · primer descenso jugable
+
+Abre `?mode=inferno` o pulsa **INFERNO BOWLING** en la portada de las carreras. El Umbral dura unos 53 segundos en una pasada completa sin errores. Tiene 90 bolos físicos en 15 grupos, dos barrancos de 23/25 metros, un puente con el centro roto y dos bordes para grindar, un looping de 64 metros de altura con entrada y salida separadas y tres oleadas de combate contra Minos. Es un modo local para un jugador, independiente de las reglas de carrera y los bots.
+
+| Acción | PC | Móvil | Mando |
+| --- | --- | --- | --- |
+| Trazar | A/D, ←/→ o arrastrar con ratón sobre la escena | Deslizar en toda la franja inferior | Stick izquierdo / cruceta |
+| Saltar | Espacio / botón SALTAR | Botón SALTAR | A / botón principal |
+| Aplastar en el aire | Segunda pulsación de Espacio | Segunda pulsación del botón | Segunda pulsación de A |
+| Pausa | Esc / botón superior | Botón superior | Start |
+
+El ratón y el dedo eligen un objetivo horizontal continuo que se conserva al soltar. La respuesta lateral usa un resorte amortiguado rápido a 60 Hz; teclado y mando toman prioridad. El salto tiene una breve tolerancia al salir del borde y admite pulsación anticipada. En el puente roto hay que acercarse y mantenerse en uno de los bordes; el raíl se engancha automáticamente y permite saltar. Los huecos no dan apoyo. El looping conserva los controles respecto a la cámara.
+
+El movimiento de la bola es **arcade y relativo a la cinta**, con saltos balísticos y adhesión al looping; no usa la dinámica libre de las canicas de carreras. Los bolos son cuerpos dinámicos de Rapier: la bola aplica un impacto barrido y los bolos pueden derribar a otros mediante sus contactos físicos. Cada grupo de seis derribado otorga un strike, puntos extra y furia. La cadena caduca tras 4,5 segundos sin derribar bolos; los multiplicadores suben hasta ×8. Un golpe recibido corta la cadena. Con la furia llena, saltar y aplastar activa **Hellstrike**, con un área de impacto mayor y un breve impulso de velocidad.
+
+Hay cuatro vidas. Un bloqueo daña y frena; caer al abismo devuelve al último punto seguro y cuesta una vida. Hay protección breve después de recibir daño. Al perderlas aparece el resultado y se puede reiniciar. Puntuación máxima y preferencia de sonido se guardan localmente cuando el navegador lo permite.
+
+**Minos exige seis derribos en cada una de tres oleadas**. Cada oleada ofrece dos grupos de seis: el segundo permite recuperar bolos fallados o aumentar la puntuación. El boss mantiene una posición adelantada, se mueve, reacciona al daño y proyecta obstáculos: barrera lateral, bloqueo móvil y barrera baja que admite salto. Si no se rompe su guardia se repite esa oleada al coste de una vida. El daño al boss se conserva; los puntos de la oleada se restauran al valor de entrada para impedir acumular puntuación repitiendo los mismos bolos. Solo se obtiene victoria al superar las tres guardias y alcanzar el portal.
+
+La banda sonora original usa síntesis electro/acid con un perfil más oscuro a 156 BPM, viento e impactos que responden al juego. No utiliza grabaciones de los juegos de referencia. El escenario, la bola, los bolos y Minos se generan mediante geometría y texturas procedurales de Three.js.
+
+Este primer descenso valida movimiento, derribos y combate. Los nueve círculos, otros bosses, progresión entre descensos y ataques adicionales son alcance futuro; consulta [el diseño de la variante](docs/inferno-design.md). No se presenta todavía como una campaña completa.
+
+Archivos: `src/inferno/course.ts` define la cinta y encuentros; `simulation.ts` contiene movimiento, bolos y reglas; `scene.ts` renderiza; `main.ts` gestiona interfaz, audio y entradas; `style.css` adapta el HUD. `src/entry.ts` elige la variante sin cargar simultáneamente ambas interfaces. `tests/inferno.test.ts` prueba una pasada completa y las mecánicas por separado.
+
+Para revisión local, `/tests/inferno-visual/` permite avanzar un segundo o saltar, mediante conducción automática real, a los abismos, raíles, looping y boss. Esta página de pruebas no se incluye en `dist/` ni en Pages.
 
 ## Publicación en GitHub Pages
 

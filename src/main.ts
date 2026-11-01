@@ -49,7 +49,7 @@ app.innerHTML = `
       <div class="circuit-stats"><div><strong id="track-length">—</strong><span>LONGITUD</span></div><div><strong id="pilot-count">40</strong><span>PILOTOS</span></div><div><strong id="course-count">01</strong><span id="course-label">RECORRIDO</span></div></div>
       <div class="surface-legend"><span><i class="carbon"></i>CARBONO</span><span><i class="ice"></i>HIELO</span><span><i class="rubber"></i>GOMA</span><span><i class="metal"></i>TITANIO</span></div>
     </aside>
-    <footer class="menu-footer"><span class="footer-controls"><kbd>←</kbd><kbd>→</kbd> DIRIGE <span class="footer-separator"></span><kbd>ESPACIO</kbd> TURBO</span><span class="footer-caption">SIGUE EL VERDE. EVITA EL ROSA.</span><span class="footer-build">BUILT FOR THE RUSH <span>↗</span></span></footer>
+    <footer class="menu-footer"><span class="footer-controls"><kbd>←</kbd><kbd>→</kbd> DIRIGE <span class="footer-separator"></span><kbd>ESPACIO</kbd> TURBO</span><span class="footer-caption">SIGUE EL VERDE. EVITA EL ROSA.</span><a class="inferno-link" href="?mode=inferno"><span>NUEVO EXPERIMENTO</span> INFERNO BOWLING <b>↗</b></a></footer>
   </main>
 
   <section id="hud" class="hud hidden" aria-label="Datos de carrera">
